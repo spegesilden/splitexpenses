@@ -1,9 +1,16 @@
 import csv
 
+# This will be solved be considering the whole thing as a directed and weighted graph.
+
+# The set of all verticies
 V = set([])
+# The set of all edges. Note that a node N1 points at N2 with the weight w by
+# E[N1] = [N2, w]
 E = dict([])
+# The list of all buyes
 buyers = []
 
+# The nodes of V consist of objects of the class Node.
 class Node:
     def __init__(self, name):
         self.name = name
@@ -34,28 +41,34 @@ class Node:
         if not wasThere:
             E.setdefault(self, [[node, value]]).append([node, value])
 
+# Function for Adding multiple edges between multiple nodes.
 def extendEdges(start, value, names):
     p = value/float(len(names))
     for n in names:
         if n != start.name:
             start.addEdge(Node(n), p)
 
+# Function to add a payee as a Node in V.
 def createPayeeEdges(payees):
     for p in payees:
         E.setdefault(Node(p), [])
 
+# Checks if a given route is actually possible
+# i.e. if it is possible to travel along the route.
 def isRoutable(route):
     for i in range(len(route)):
         if route[i+1] not in E[route[i]]:
             return False
     return True
 
+# Checks whether there is an edge from start to end.
 def isEdge(start, end):
     for e in E[start]:
         if end == e[0]:
             return True
     return False
 
+# Deletes the edge from start to end
 def delEdge(start, end):
     edge = None
     for e in E[start]:
@@ -63,6 +76,9 @@ def delEdge(start, end):
             edge = e
     E[start].remove(edge)
 
+# TODO: Make this work!
+# Given a route from start to end the function will delete this route
+# and then update the edge from start to end.
 def updateEdges(start, end, rmRoute):
     change = 0
 
@@ -83,6 +99,10 @@ def updateEdges(start, end, rmRoute):
             E[start][i] = [e[0], e[1] + change]
             print(e[0], e[1])
 
+# TODO: Make this work!
+# This function will contract the graph.
+# In other words it will given startNode and endNode romove excess edges
+# and hence there will be less transactions.
 def contractGraph(startNode, endNode, values, seen, route):
     for e in E[route[-1]]:
         if e[0] not in seen:
@@ -104,6 +124,7 @@ def contractGraph(startNode, endNode, values, seen, route):
                 contractGraph(startNode, endNode, newValues, newSeen, newRoute)
             #seen.append(e[1])
 
+# Function to print the payees.
 def printPayees():
     total = 0
     for v in V:
@@ -112,6 +133,9 @@ def printPayees():
             total += 1
     print(total)
 
+# This will count how much the persons who should have money will get
+# and print the total value.
+# The function is only for validating if the program works
 def makeTransfers():
     total = 0
     for v, edges in E.items():
@@ -123,6 +147,7 @@ def makeTransfers():
         total += s
     print(total)
 
+# Function to print the edges.
 def printEdges():
     for k in E.keys():
         print(str(k) + " points at:")
