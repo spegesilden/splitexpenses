@@ -74,6 +74,7 @@ def delEdge(start, end):
     for e in E[start]:
         if e[0] == end:
             edge = e
+    #print('Removing', edge[0], edge[1])
     E[start].remove(edge)
 
 # TODO: Make this work!
@@ -81,23 +82,40 @@ def delEdge(start, end):
 # and then update the edge from start to end.
 def updateEdges(start, end, rmRoute):
     change = 0
+    toDelete = []
 
-    print('Is edge:', isEdge(start, end))
+    #print('Is edge:', isEdge(start, end), 'route length is:', len(rmRoute), 'number of edges is:', noEdges())
+    #print(start, end)
 
-    for i in range(len(rmRoute) - 1):
-        for e in E[rmRoute[i]]:
-            if rmRoute[i+1] == e[0] and rmRoute[i] != start:
-                change += e[1]
-                delEdge(rmRoute[i], rmRoute[i+1])
+    if len(rmRoute) > 2:
+        for i in range(len(rmRoute) - 1):
+            for e in E[rmRoute[i]]:
+                #print(rmRoute[i], rmRoute[i+1], rmRoute[i+1] == e[0])
+                if rmRoute[i+1] == e[0]:
+                    change += e[1]
+                    #delEdge(rmRoute[i], rmRoute[i+1])
+                    toDelete.append([rmRoute[i], i+1])
 
-    print('Is edge:', isEdge(start, end))
-    print("change is:", change)
-    # Update the last edge
-    for i, e in enumerate(E[start]):
-        if end == e[1]:
-            print(e[0], e[1], change)
-            E[start][i] = [e[0], e[1] + change]
-            print(e[0], e[1])
+        for d in toDelete:
+            delEdge(d[0], rmRoute[d[1]])
+
+        #print('Number of edges is:', noEdges())
+
+        #print('Is edge:', isEdge(start, end))
+        #print("change is:", change)
+        # Update the last edge
+        if isEdge(start, end):
+            for i, e in enumerate(E[start]):
+                if end == e[0]:
+                    #print(e[0], e[1], change)
+                    E[start][i] = [e[0], e[1] + change]
+                    #print(e[0], e[1], E[start][i][0], E[start][i][1])
+        else:
+            E.setdefault(start, [[end, change]]).append([end, change])
+    #else:
+        #print('Not doing anything')
+
+    #print('')
 
 # TODO: Make this work!
 # This function will contract the graph.
@@ -153,6 +171,15 @@ def printEdges():
         print(str(k) + " points at:")
         for e in E[k]:
             print(e[0])
+
+# Function to print number of edges.
+def noEdges():
+    s = 0
+
+    for k in E.keys():
+        s += len(E[k])
+
+    return s
 
 # Reads the csv-file
 with open('reciepts.csv', 'rt') as f:
