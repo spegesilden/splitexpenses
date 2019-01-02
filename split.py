@@ -102,11 +102,29 @@ def delEdge(start, end):
 
 # Finds all routes from start to end which a longer than 1 edge.
 def findRoutes(start, end, route, seen):
-    s = 0
-    seen.append(route[-1])
+    routes = []
 
-    #for e in E[route[-1]]:
-    #    if e[0] not in seen:
+    # This is just a function which helps me to not repeat myself
+    def routeStep(e):
+        if e[0] not in seen:
+            r = route[::]
+            r.append(e)
+            if e[0] == end and len(r) > 2:
+                routes.append(r)
+            else:
+                s = seen[::]
+                s.append(e[0])
+                routes.extend(findRoutes(start, end, r, s))
+
+
+    if len(route) > 0:
+        for e in U[route[-1][0]]:
+            routeStep(e)
+    else:
+        for e in U[start]:
+            routeStep(e)
+
+    return routes
 
 # TODO: Make this work!
 # Given a route from start to end the function will delete this route
@@ -213,8 +231,7 @@ with open('reciepts.csv', 'rt') as f:
         extendEdges(node, float(row[1]), row[2::])
         createPayeeEdges(row[2::])
 
-for e in U[Node('Sisse')]:
-    print(e[0], e[1])
+print(findRoutes(Node('Karoline'), Node('Sisse'), [], [Node('Karoline')]))
 
 #print('First print')
 #printPayees()
