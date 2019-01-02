@@ -4,11 +4,27 @@ import csv
 
 # The set of all verticies
 V = set([])
-# The set of all edges. Note that a node N1 points at N2 with the weight w by
-# E[N1] = [N2, w]
+# The set of all edges. Note that a node N1 points at N2 with the weight w by E[N1] = [N2, w]
 E = dict([])
+# The set of all edges. Note that it is not directed
+U = dict([])
 # The list of all buyes
 buyers = []
+
+def addToU(start, end, direction):
+    if start in U.keys():
+        wasInU = False
+
+        for i, e in enumerate(U[start]):
+            if e[0] == end:
+                wasInU = True
+                U[start][i][1] = U[start][i][1] or direction
+
+        if not wasInU:
+            U[start].append([end, direction])
+    else:
+        U[start] = [[end, direction]]
+
 
 # The nodes of V consist of objects of the class Node.
 class Node:
@@ -29,6 +45,9 @@ class Node:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __repr__(self):
+        return str(self)
+
     def addEdge(self, node, value):
         wasThere = False
 
@@ -38,8 +57,13 @@ class Node:
                     e[1] += value
                     wasThere = True
 
+        # Adds the directed edge
         if not wasThere:
             E.setdefault(self, [[node, value]]).append([node, value])
+
+        # Adds the undirected edge
+        addToU(self, node, True)
+        addToU(node, self, False)
 
 # Function for Adding multiple edges between multiple nodes.
 def extendEdges(start, value, names):
@@ -76,6 +100,14 @@ def delEdge(start, end):
             edge = e
     E[start].remove(edge)
 
+# Finds all routes from start to end which a longer than 1 edge.
+def findRoutes(start, end, route, seen):
+    s = 0
+    seen.append(route[-1])
+
+    #for e in E[route[-1]]:
+    #    if e[0] not in seen:
+
 # TODO: Make this work!
 # Given a route from start to end the function will delete this route
 # and then update the edge from start to end.
@@ -100,7 +132,7 @@ def updateEdges(start, end, rmRoute):
                 if end == e[0]:
                     E[start][i] = [e[0], e[1] + change]
                     if e[1]+change > 100:
-                        print(e[0], start, e[1], change, e[1]+change)
+                        print(start, e[0], e[1], change, e[1]+change)
         else:
             E.setdefault(start, [[end, change]]).append([end, change])
     #print('')
@@ -117,8 +149,11 @@ def contractGraph(startNode, endNode, values, seen, route):
             newRoute = route[::]
             newRoute.append(e[0])
 
-            if e[0] == endNode and len(newRoute) > 1:
+            if e[0] == endNode and len(newRoute) > 2:
                 change = sum(newValues)
+                print('Updating edge', startNode, endNode)
+                for r in newRoute:
+                    print(r)
                 updateEdges(startNode, endNode, newRoute)
             elif e[0] != startNode:
                 newSeen = seen[::]
@@ -178,19 +213,22 @@ with open('reciepts.csv', 'rt') as f:
         extendEdges(node, float(row[1]), row[2::])
         createPayeeEdges(row[2::])
 
-print('First print')
-printPayees()
-print('')
-makeTransfers()
-print('')
+for e in U[Node('Sisse')]:
+    print(e[0], e[1])
 
-for b1 in buyers:
-    for b2 in buyers:
-        if b1 != b2:
-            contractGraph(b1, b2, [], [b1], [b1])
-
-print('')
-print('Second print')
-printPayees()
-print('')
-makeTransfers()
+#print('First print')
+#printPayees()
+#print('')
+#makeTransfers()
+#print('')
+#
+#for b1 in buyers:
+#    for b2 in buyers:
+#        if b1 != b2:
+#            contractGraph(b1, b2, [], [b1], [b1])
+#
+#print('')
+#print('Second print')
+#printPayees()
+#print('')
+#makeTransfers()
