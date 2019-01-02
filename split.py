@@ -74,7 +74,6 @@ def delEdge(start, end):
     for e in E[start]:
         if e[0] == end:
             edge = e
-    #print('Removing', edge[0], edge[1])
     E[start].remove(edge)
 
 # TODO: Make this work!
@@ -84,13 +83,9 @@ def updateEdges(start, end, rmRoute):
     change = 0
     toDelete = []
 
-    #print('Is edge:', isEdge(start, end), 'route length is:', len(rmRoute), 'number of edges is:', noEdges())
-    #print(start, end)
-
     if len(rmRoute) > 2:
         for i in range(len(rmRoute) - 1):
             for e in E[rmRoute[i]]:
-                #print(rmRoute[i], rmRoute[i+1], rmRoute[i+1] == e[0])
                 if rmRoute[i+1] == e[0]:
                     change += e[1]
                     #delEdge(rmRoute[i], rmRoute[i+1])
@@ -99,22 +94,15 @@ def updateEdges(start, end, rmRoute):
         for d in toDelete:
             delEdge(d[0], rmRoute[d[1]])
 
-        #print('Number of edges is:', noEdges())
-
-        #print('Is edge:', isEdge(start, end))
-        #print("change is:", change)
         # Update the last edge
         if isEdge(start, end):
             for i, e in enumerate(E[start]):
                 if end == e[0]:
-                    #print(e[0], e[1], change)
                     E[start][i] = [e[0], e[1] + change]
-                    #print(e[0], e[1], E[start][i][0], E[start][i][1])
+                    if e[1]+change > 100:
+                        print(e[0], start, e[1], change, e[1]+change)
         else:
             E.setdefault(start, [[end, change]]).append([end, change])
-    #else:
-        #print('Not doing anything')
-
     #print('')
 
 # TODO: Make this work!
@@ -128,13 +116,9 @@ def contractGraph(startNode, endNode, values, seen, route):
             newValues.append(e[1])
             newRoute = route[::]
             newRoute.append(e[0])
-            #print(e[0])
 
             if e[0] == endNode and len(newRoute) > 1:
-                #for n in route:
-                #    print(n)
                 change = sum(newValues)
-                #print(startNode, endNode, change)
                 updateEdges(startNode, endNode, newRoute)
             elif e[0] != startNode:
                 newSeen = seen[::]
