@@ -73,6 +73,18 @@ def extendEdges(start, value, names):
             start.addEdge(Node(n), p)
             V.add(Node(n))
 
+# Removes zero-edges
+def rmZeroEdges():
+    toRemove = []
+
+    for v, edges in E.items():
+        for i, e in enumerate(edges):
+            if e[1] == 0:
+                toRemove.append([v, e[0]])
+
+    for r in toRemove:
+        rmEdge(r[0], r[1])
+
 # Function to add a payee as a Node in V.
 def createPayeeEdges(payees):
     for p in payees:
@@ -95,6 +107,16 @@ def isEdge(start, end):
 
 # Deletes the edge from start to end
 def rmEdge(start, end):
+    edge = None
+    for i, e in enumerate(E[start]):
+        if e[0] == end:
+            edge = e
+    if len(E[start]) > 1:
+        E[start].remove(edge)
+    else:
+        del E[start]
+
+def markEdge(start, end):
     for e in E[start]:
         if e[0] == end:
             e[1] = 0
@@ -138,7 +160,7 @@ def updateEdge(start, end, other):
             n = i
 
     E[start][n][1] -= value
-    rmEdge(end, start)
+    markEdge(end, start)
 
 # Find all edges in U which are not in E.
 def findNonEdges():
@@ -151,6 +173,7 @@ def findNonEdges():
 
     return edges
 
+# Finds an edge in U which is in E.
 def findOther(nonEdge):
     for e in U[nonEdge[0]]:
         if e[1]:
@@ -235,6 +258,7 @@ print('')
 n1 = Node('Karoline')
 n2 = Node('Sisse')
 contractGraph(n1, n2, [], [n1], [n1])
+rmZeroEdges()
 
 #for b1 in buyers:
 #    for b2 in buyers:
