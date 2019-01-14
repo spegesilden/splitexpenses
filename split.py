@@ -102,7 +102,7 @@ def delEdge(start, end):
     E[start].remove(edge)
 
 # Finds a route from start to end which is longer than 1 edge.
-def findRoutes(start, end, route, seen):
+def findRoute(start, end, route, seen):
     for e in U[route[-1][0]]:
         if e[0] not in seen:
             r = route[::]
@@ -148,25 +148,12 @@ def updateEdges(start, end, rmRoute):
 # This function will contract the graph.
 # In other words it will given startNode and endNode romove excess edges
 # and hence there will be less transactions.
-def contractGraph(startNode, endNode, values, seen, route):
-    for e in E[route[-1]]:
-        if e[0] not in seen:
-            newValues = values[::]
-            newValues.append(e[1])
-            newRoute = route[::]
-            newRoute.append(e[0])
+def contractGraph(start, end, values, seen, route):
+    route = findRoute(start, end, [[start, 0]], [start])
 
-            if e[0] == endNode and len(newRoute) > 2:
-                change = sum(newValues)
-                print('Updating edge', startNode, endNode)
-                for r in newRoute:
-                    print(r)
-                updateEdges(startNode, endNode, newRoute)
-            elif e[0] != startNode:
-                newSeen = seen[::]
-                newSeen.append(e[0])
-                contractGraph(startNode, endNode, newValues, newSeen, newRoute)
-            #seen.append(e[1])
+    while route:
+        updateEdge(start, end, route)
+        route = findRoute(start, end, [[start, 0]], [start])
 
 # Function to print the payees.
 def printPayees():
@@ -219,8 +206,6 @@ with open('reciepts.csv', 'rt') as f:
         V.add(node)
         extendEdges(node, float(row[1]), row[2::])
         #createPayeeEdges(row[2::])
-
-print(findRoutes(Node('Karoline'), Node('Sisse'), [[Node('Karoline'), 0]], [Node('Karoline')]))
 
 #print('First print')
 #printPayees()
