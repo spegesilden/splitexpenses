@@ -95,11 +95,9 @@ def isEdge(start, end):
 
 # Deletes the edge from start to end
 def rmEdge(start, end):
-    edge = None
     for e in E[start]:
         if e[0] == end:
-            edge = e
-    E[start].remove(edge)
+            e[1] = 0
 
 # Find n to be the first in route which is not in E.
 def findNonEdge(route):
@@ -129,17 +127,17 @@ def findRoute(start, end, route, seen):
 # Given a route from start to end the function will delete this route
 # and then update the edge from start to end.
 def updateEdge(start, end, other):
-    change = 0
+    value = 0
     n = 0
 
-    for e, i in enumerate(E[end]):
+    for e in E[end]:
         if e[0] == start:
-            change = e[1]
-    for e, i in enumerate(E[start]):
+            value = e[1]
+    for i, e in enumerate(E[start]):
         if e[0] == other:
             n = i
 
-    E[start][n] -= change
+    E[start][n][1] -= value
     rmEdge(end, start)
 
 # Find all edges in U which are not in E.
@@ -153,20 +151,28 @@ def findNonEdges():
 
     return edges
 
+def findOther(nonEdge):
+    for e in U[nonEdge[0]]:
+        if e[1]:
+            return e[0]
+
 # This function will contract the graph.
 # In other words it will given startNode and endNode romove excess edges
 # and hence there will be less transactions.
 def contractGraph(start, end, values, seen, route):
-    route = findRoute(start, end, [[start, 0]], [start])
+    edges = findNonEdges()
 
-    while route:
-        updateEdge(start, end, route)
-        route = findRoute(start, end, [[start, 0]], [start])
+    for e in edges:
+        e.append(findOther(e))
+
+    for e in edges:
+        if not (e[2] is None):
+            updateEdge(e[0], e[1], e[2])
 
 # Function to print the payees.
 def printPayees():
     total = 0
-    for v in V:
+    for v in E.keys():
         for p in E[v]:
             print(v.name, p[0].name, p[1])
             total += 1
@@ -183,7 +189,10 @@ def makeTransfers():
             s += e[1]
 
         print(v, s)
-        total += s
+        if s < 0:
+            total -= s
+        else:
+            total += s
     print(total)
 
 # Function to print the edges.
@@ -217,23 +226,23 @@ with open('reciepts.csv', 'rt') as f:
 
 #print(findNonEdges())
 
+print('First print')
+#printPayees()
+print('')
+makeTransfers()
+print('')
+
 n1 = Node('Karoline')
 n2 = Node('Sisse')
 contractGraph(n1, n2, [], [n1], [n1])
 
-#print('First print')
-#printPayees()
-#print('')
-#makeTransfers()
-#print('')
-#
 #for b1 in buyers:
 #    for b2 in buyers:
 #        if b1 != b2:
 #            contractGraph(b1, b2, [], [b1], [b1])
-#
-#print('')
-#print('Second print')
+
+print('')
+print('Second print')
 #printPayees()
-#print('')
-#makeTransfers()
+print('')
+makeTransfers()
