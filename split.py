@@ -94,12 +94,22 @@ def isEdge(start, end):
     return False
 
 # Deletes the edge from start to end
-def delEdge(start, end):
+def rmEdge(start, end):
     edge = None
     for e in E[start]:
         if e[0] == end:
             edge = e
     E[start].remove(edge)
+
+# Find n to be the first in route which is not in E.
+def findNonEdge(route):
+    n = 1
+    while route[n][1] and n < len(route) - 1:
+        n += 1
+
+    if not route[n][1]:
+        return n - 1
+    return False
 
 # Finds a route from start to end which is longer than 1 edge.
 def findRoute(start, end, route, seen):
@@ -107,44 +117,42 @@ def findRoute(start, end, route, seen):
         if e[0] not in seen:
             r = route[::]
             r.append(e)
-            if e[0] == end and len(r) > 2:
+            if e[0] == end and len(r) > 2 and findNonEdge(r):
                 return r
             else:
                 seen.append(e)
-                return findRoutes(start, end, r, seen)
+                return findRoute(start, end, r, seen)
 
     return False
 
 # TODO: Make this work!
 # Given a route from start to end the function will delete this route
 # and then update the edge from start to end.
-def updateEdges(start, end, rmRoute):
+def updateEdge(start, end, other):
     change = 0
-    toDelete = []
+    n = 0
 
-    if len(rmRoute) > 2:
-        for i in range(len(rmRoute) - 1):
-            for e in E[rmRoute[i]]:
-                if rmRoute[i+1] == e[0]:
-                    change += e[1]
-                    #delEdge(rmRoute[i], rmRoute[i+1])
-                    toDelete.append([rmRoute[i], i+1])
+    for e, i in enumerate(E[end]):
+        if e[0] == start:
+            change = e[1]
+    for e, i in enumerate(E[start]):
+        if e[0] == other:
+            n = i
 
-        for d in toDelete:
-            delEdge(d[0], rmRoute[d[1]])
+    E[start][n] -= change
+    rmEdge(end, start)
 
-        # Update the last edge
-        if isEdge(start, end):
-            for i, e in enumerate(E[start]):
-                if end == e[0]:
-                    E[start][i] = [e[0], e[1] + change]
-                    if e[1]+change > 100:
-                        print(start, e[0], e[1], change, e[1]+change)
-        else:
-            E.setdefault(start, [[end, change]]).append([end, change])
-    #print('')
+# Find all edges in U which are not in E.
+def findNonEdges():
+    edges = []
 
-# TODO: Make this work!
+    for v in U.keys():
+        for e in U[v]:
+            if not e[1] and len(U[v]) > 1:
+                edges.append([v, e[0]])
+
+    return edges
+
 # This function will contract the graph.
 # In other words it will given startNode and endNode romove excess edges
 # and hence there will be less transactions.
@@ -206,6 +214,12 @@ with open('reciepts.csv', 'rt') as f:
         V.add(node)
         extendEdges(node, float(row[1]), row[2::])
         #createPayeeEdges(row[2::])
+
+#print(findNonEdges())
+
+n1 = Node('Karoline')
+n2 = Node('Sisse')
+contractGraph(n1, n2, [], [n1], [n1])
 
 #print('First print')
 #printPayees()
