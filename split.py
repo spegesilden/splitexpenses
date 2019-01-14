@@ -71,6 +71,7 @@ def extendEdges(start, value, names):
     for n in names:
         if n != start.name:
             start.addEdge(Node(n), p)
+            V.add(Node(n))
 
 # Function to add a payee as a Node in V.
 def createPayeeEdges(payees):
@@ -100,31 +101,19 @@ def delEdge(start, end):
             edge = e
     E[start].remove(edge)
 
-# Finds all routes from start to end which a longer than 1 edge.
+# Finds a route from start to end which is longer than 1 edge.
 def findRoutes(start, end, route, seen):
-    routes = []
-
-    # This is just a function which helps me to not repeat myself
-    def routeStep(e):
+    for e in U[route[-1][0]]:
         if e[0] not in seen:
             r = route[::]
             r.append(e)
             if e[0] == end and len(r) > 2:
-                routes.append(r)
+                return r
             else:
-                s = seen[::]
-                s.append(e[0])
-                routes.extend(findRoutes(start, end, r, s))
+                seen.append(e)
+                return findRoutes(start, end, r, seen)
 
-
-    if len(route) > 0:
-        for e in U[route[-1][0]]:
-            routeStep(e)
-    else:
-        for e in U[start]:
-            routeStep(e)
-
-    return routes
+    return False
 
 # TODO: Make this work!
 # Given a route from start to end the function will delete this route
@@ -229,9 +218,9 @@ with open('reciepts.csv', 'rt') as f:
 
         V.add(node)
         extendEdges(node, float(row[1]), row[2::])
-        createPayeeEdges(row[2::])
+        #createPayeeEdges(row[2::])
 
-print(findRoutes(Node('Karoline'), Node('Sisse'), [], [Node('Karoline')]))
+print(findRoutes(Node('Karoline'), Node('Sisse'), [[Node('Karoline'), 0]], [Node('Karoline')]))
 
 #print('First print')
 #printPayees()
