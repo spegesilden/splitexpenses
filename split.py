@@ -85,25 +85,11 @@ def rmZeroEdges():
     for r in toRemove:
         rmEdge(r[0], r[1])
 
+# Do I need this?
 # Function to add a payee as a Node in V.
 def createPayeeEdges(payees):
     for p in payees:
         E.setdefault(Node(p), [])
-
-# Checks if a given route is actually possible
-# i.e. if it is possible to travel along the route.
-def isRoutable(route):
-    for i in range(len(route)):
-        if route[i+1] not in E[route[i]]:
-            return False
-    return True
-
-# Checks whether there is an edge from start to end.
-def isEdge(start, end):
-    for e in E[start]:
-        if end == e[0]:
-            return True
-    return False
 
 # Deletes the edge from start to end
 def rmEdge(start, end):
@@ -129,20 +115,6 @@ def findNonEdge(route):
 
     if not route[n][1]:
         return n - 1
-    return False
-
-# Finds a route from start to end which is longer than 1 edge.
-def findRoute(start, end, route, seen):
-    for e in U[route[-1][0]]:
-        if e[0] not in seen:
-            r = route[::]
-            r.append(e)
-            if e[0] == end and len(r) > 2 and findNonEdge(r):
-                return r
-            else:
-                seen.append(e)
-                return findRoute(start, end, r, seen)
-
     return False
 
 # TODO: Make this work!
