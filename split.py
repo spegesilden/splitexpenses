@@ -30,6 +30,8 @@ def addToU(start, end, direction):
 class Node:
     def __init__(self, name):
         self.name = name
+        self.unblocked = True
+        self.parent = None
 
     def __eq__(self, other):
         if isinstance(other, Node):
@@ -107,6 +109,34 @@ def markEdge(start, end):
         if e[0] == end:
             e[1] = 0
 
+# Initializes the graph once again
+def initialize():
+    for v in V:
+        v.unblocked = True
+        v.parent = None
+
+# A recursive function used in findCycles
+def visit(v, p, start):
+    v.unblocked = False
+    v.parent = p
+
+    if v == start:
+        return v
+
+    for e in E[v]:
+        if e[0].unblocked:
+            visit(v, p, start)
+
+    v.unblocked = True
+
+# Find a cycle
+def findCycle(start):
+    for e in E[start]:
+        visit(e[0], start, start)
+
+    return False
+
+
 # Find n to be the first in route which is not in E.
 def findNonEdge(route):
     n = 1
@@ -117,7 +147,6 @@ def findNonEdge(route):
         return n - 1
     return False
 
-# TODO: Make this work!
 # Given a route from start to end the function will delete this route
 # and then update the edge from start to end.
 def updateEdge(start, end, other):
