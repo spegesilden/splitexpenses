@@ -25,13 +25,30 @@ def addToU(start, end, direction):
     else:
         U[start] = [[end, direction]]
 
+def addToV(s):
+    isVertex = False
+
+    for v in V:
+        if v.name == s:
+            isVertex = True
+
+    if not isVertex:
+        V.add(Node(s))
+
+def getV(s):
+    for v in V:
+        if v.name == s:
+            return v
+
+    return False
 
 # The nodes of V consist of objects of the class Node.
 class Node:
     def __init__(self, name):
         self.name = name
-        self.unblocked = True
+        self.visited = False
         self.parent = None
+        E.setdefault(self, [])
 
     def __eq__(self, other):
         if isinstance(other, Node):
@@ -72,8 +89,9 @@ def extendEdges(start, value, names):
     p = value/float(len(names))
     for n in names:
         if n != start.name:
-            start.addEdge(Node(n), p)
-            V.add(Node(n))
+            addToV(n)
+            v = getV(n)
+            start.addEdge(v, p)
 
 # Removes zero-edges
 def rmZeroEdges():
@@ -93,49 +111,103 @@ def createPayeeEdges(payees):
     for p in payees:
         E.setdefault(Node(p), [])
 
-# Deletes the edge from start to end
+# Deletes the edge from start to end.
+# Returns False is there is no edge.
 def rmEdge(start, end):
-    edge = None
+    edge = False
+
     for i, e in enumerate(E[start]):
         if e[0] == end:
             edge = e
+
     if len(E[start]) > 1:
         E[start].remove(edge)
     else:
         del E[start]
+
+    return edge
 
 def markEdge(start, end):
     for e in E[start]:
         if e[0] == end:
             e[1] = 0
 
-# Initializes the graph once again
+# Initializes the graph once again.
 def initialize():
     for v in V:
-        v.unblocked = True
+        v.visited = False
         v.parent = None
 
-# A recursive function used in findCycles
-def visit(v, p, start):
-    v.unblocked = False
+# A recursive function used in findCycle.
+def visit(v, p, start, l):
+    v.visited = True
     v.parent = p
+    l += 1
 
     if v == start:
-        return v
+        return [v, l]
 
+    if len(E[v]) == 0:
+        #print(len(E[start]), len(E[p]), len(E[v]))
+        #print(v, p, E[p])
+        visit(p, p.parrent, start, l)
     for e in E[v]:
-        if e[0].unblocked:
-            visit(v, p, start)
+        if not e[0].visited:
+            visit(e[0], v, start, l)
 
-    v.unblocked = True
+    v.visited = False
 
-# Find a cycle
+# Finds a cycle
 def findCycle(start):
+    length = 0
+    start.visited = False
+
     for e in E[start]:
-        visit(e[0], start, start)
+        visit(e[0], start, start, length)
 
     return False
 
+# This is called if there is an odd number of edges.
+# It will change the cycle in order to get an even number of edges.
+# Returns the new change.
+def changeCycle(start, end, change):
+    p = end.parent
+    isEdge = rmEdge(start, p)
+
+    updateEdge(p, end, -change)
+
+    if isEdge:
+        change += isEdge[1]
+
+    isEdge = rmEdge(p, start)
+
+    if isEdge:
+        change -= isEdge[1]
+
+    return change
+
+
+# Removes or breaks a cycle
+def rmCycle(v, start, length):
+    edge = rmEdge(v, start)
+
+    child = v
+    p = v.parent
+
+    if length % 2 == 1:
+        edge = changeCycle(start, v, edge)
+        child = p
+        p = p.parent
+
+    while not (p.parent is None):
+        updateEdge(p, p.parent, edge)
+        updateEdge(child, p, -edge)
+
+        p = p.parent
+        child = p
+        p = p.parent
+
+    updateEdge(child, p, -edge)
 
 # Find n to be the first in route which is not in E.
 def findNonEdge(route):
@@ -147,21 +219,16 @@ def findNonEdge(route):
         return n - 1
     return False
 
-# Given a route from start to end the function will delete this route
-# and then update the edge from start to end.
-def updateEdge(start, end, other):
-    value = 0
-    n = 0
+# This will update an edge if it exists.
+def updateEdge(start, end, change):
+    for e in E[start]:
+        if e[0] == end:
+            e[1] += change
 
-    for e in E[end]:
-        if e[0] == start:
-            value = e[1]
-    for i, e in enumerate(E[start]):
-        if e[0] == other:
-            n = i
-
-    E[start][n][1] -= value
-    markEdge(end, start)
+def updateEdges(v, change):
+    p = v.parent
+    if p.parent is None:
+        updateEdge(v, p, change)
 
 # Find all edges in U which are not in E.
 def findNonEdges():
@@ -239,35 +306,35 @@ def noEdges():
 with open('reciepts.csv', 'rt') as f:
     reader = csv.reader(f)
     for row in reader:
-        node = Node(row[0])
+        addToV(row[0])
+        node = getV(row[0])
 
         if node not in buyers:
             buyers.append(node)
 
-        V.add(node)
         extendEdges(node, float(row[1]), row[2::])
         #createPayeeEdges(row[2::])
 
-#print(findNonEdges())
+print(findCycle(Node('Karoline')))
 
-print('First print')
-#printPayees()
-print('')
-makeTransfers()
-print('')
-
-n1 = Node('Karoline')
-n2 = Node('Sisse')
-contractGraph(n1, n2, [], [n1], [n1])
-rmZeroEdges()
-
-#for b1 in buyers:
-#    for b2 in buyers:
-#        if b1 != b2:
-#            contractGraph(b1, b2, [], [b1], [b1])
-
-print('')
-print('Second print')
-#printPayees()
-print('')
-makeTransfers()
+#print('First print')
+##printPayees()
+#print('')
+#makeTransfers()
+#print('')
+#
+#n1 = Node('Karoline')
+#n2 = Node('Sisse')
+#contractGraph(n1, n2, [], [n1], [n1])
+#rmZeroEdges()
+#
+##for b1 in buyers:
+##    for b2 in buyers:
+##        if b1 != b2:
+##            contractGraph(b1, b2, [], [b1], [b1])
+#
+#print('')
+#print('Second print')
+##printPayees()
+#print('')
+#makeTransfers()
