@@ -142,24 +142,12 @@ def initialize():
 def visit(v, start):
     v.visited = True
 
-    #if v.visited:
-    #    return v
-
-    #if len(E[v]) == 0:
-    #    #print(len(E[start]), len(E[p]), len(E[v]))
-    #    #print(v, p, E[p])
-    #    visit(p, p.parrent, start, l)
     for e in E[v]:
         e[0].parent.append(v)
         if e[0].visited:
-            #e[0].parent.append(v)
             return e[0]
         else:
-            #print(e[0], v, p)
-            #e[0].parent.append(v)
             visit(e[0], start)
-
-    #v.visited = False
 
 # Finds a cycle
 def findCycle(start):
@@ -168,18 +156,18 @@ def findCycle(start):
     for e in E[start]:
         e[0].parent.append(start)
         if e[0].visited:
-            #e[0].parent.append(start)
             return e[0]
         else:
-            #e[0].parent.append(start)
             visit(e[0], start)
 
     return False
 
+# Will return a list containing the mid and the two branches.
 def getCycle(start, node):
     C = [start]
     C2 = [node]
 
+    # Function will return one branch
     def getC(n, cycle):
         while n != start:
             cycle.append(n)
@@ -188,6 +176,7 @@ def getCycle(start, node):
     getC(node.parent[0], C)
     getC(node.parent[1], C2)
 
+    # Reduces so there is no loose end.
     s = start
 
     while C[-1] == C2[-1]:
