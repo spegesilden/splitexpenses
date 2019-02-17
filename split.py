@@ -47,7 +47,7 @@ class Node:
     def __init__(self, name):
         self.name = name
         self.visited = False
-        self.parent = None
+        self.parent = []
         E.setdefault(self, [])
 
     def __eq__(self, other):
@@ -136,36 +136,66 @@ def markEdge(start, end):
 def initialize():
     for v in V:
         v.visited = False
-        v.parent = None
+        v.parent = []
 
 # A recursive function used in findCycle.
-def visit(v, p, start, l):
+def visit(v, start):
     v.visited = True
-    v.parent = p
-    l += 1
 
-    if v == start:
-        return [v, l]
+    #if v.visited:
+    #    return v
 
-    if len(E[v]) == 0:
-        #print(len(E[start]), len(E[p]), len(E[v]))
-        #print(v, p, E[p])
-        visit(p, p.parrent, start, l)
+    #if len(E[v]) == 0:
+    #    #print(len(E[start]), len(E[p]), len(E[v]))
+    #    #print(v, p, E[p])
+    #    visit(p, p.parrent, start, l)
     for e in E[v]:
-        if not e[0].visited:
-            visit(e[0], v, start, l)
+        e[0].parent.append(v)
+        if e[0].visited:
+            #e[0].parent.append(v)
+            return e[0]
+        else:
+            #print(e[0], v, p)
+            #e[0].parent.append(v)
+            visit(e[0], start)
 
-    v.visited = False
+    #v.visited = False
 
 # Finds a cycle
 def findCycle(start):
-    length = 0
-    start.visited = False
+    start.visited = True
 
     for e in E[start]:
-        visit(e[0], start, start, length)
+        e[0].parent.append(start)
+        if e[0].visited:
+            #e[0].parent.append(start)
+            return e[0]
+        else:
+            #e[0].parent.append(start)
+            visit(e[0], start)
 
     return False
+
+def getCycle(start, node):
+    C = [start]
+    C2 = [node]
+
+    def getC(n, cycle):
+        while n != start:
+            cycle.append(n)
+            n = n.parent[0]
+
+    getC(node.parent[0], C)
+    getC(node.parent[1], C2)
+
+    s = start
+
+    while C[-1] == C2[-1]:
+        s = C[-1]
+        C.remove(s)
+        C2.remove(s)
+
+    return [s, C, C2]
 
 # This is called if there is an odd number of edges.
 # It will change the cycle in order to get an even number of edges.
@@ -188,7 +218,7 @@ def changeCycle(start, end, change):
 
 
 # Removes or breaks a cycle
-def rmCycle(v, start, length):
+def breakCycle(v, start, length):
     edge = rmEdge(v, start)
 
     child = v
@@ -315,7 +345,6 @@ with open('reciepts.csv', 'rt') as f:
         extendEdges(node, float(row[1]), row[2::])
         #createPayeeEdges(row[2::])
 
-print(findCycle(Node('Karoline')))
 
 #print('First print')
 ##printPayees()
