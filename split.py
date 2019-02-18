@@ -69,15 +69,14 @@ class Node:
 
     def addEdge(self, node, value):
         wasThere = False
+        sn = inE(self, node)
+        ns = inE(node, self)
 
-        if self in E.keys():
-            for e in E[self]:
-                if e[0] == node:
-                    e[1] += value
-                    wasThere = True
-
-        # Adds the directed edge
-        if not wasThere:
+        if sn:
+            sn[1] += value
+        elif ns:
+            ns[1] -= value
+        else:
             E.setdefault(self, [[node, value]]).append([node, value])
 
         # Adds the undirected edge
@@ -179,9 +178,6 @@ def getCycle(start, node):
 
     # Reduces so there is no loose end.
     s = start
-    print()
-    print(C1)
-    print(C2)
 
     while C1[-1] == C2[-1]:
         s = C1[-1]
@@ -196,25 +192,29 @@ def getCycle(start, node):
 # This is called if there is an odd number of edges.
 # It will change the cycle in order to get an even number of edges.
 # Returns the new change.
-def changeCycle(start, end, change):
-    p = end.parent
-    isEdge = rmEdge(start, p)
+def changeCycle(start, mid, end, change):
+    e = rmEdge(mid, start)
+    isEdge = inE(end, start)
 
-    updateEdge(p, end, -change)
+    # Removes one more edge
+    if mid.parent == [end]:
+        updateEdge(end, mid, -e[1])
+    else:
+        updateEdge(end, mid, e[1])
 
+    # Adds or updates edge
     if isEdge:
-        change += isEdge[1]
-
-    isEdge = rmEdge(p, start)
-
-    if isEdge:
-        change -= isEdge[1]
+        isEdge[1] += -change
+        change = isEdge[1]
+    else:
+        end.addEdge(start, change)
 
     return change
 
 # Function used in breakCycle().
 def update(C, change):
-    for i in range(len(C) - 1):
+    for i in range(0, len(C) - 1, 2):
+        updateEdge(C[i], C[i - 1], change)
         updateEdge(C[i + 1], C[i], change)
 
 # Removes or breaks a cycle
@@ -280,6 +280,7 @@ def findOther(nonEdge):
 # In other words it will given startNode and endNode romove excess edges
 # and hence there will be less transactions.
 def contractGraph(start):
+    initialize()
     end = findCycle(start)
 
     while end:
@@ -331,6 +332,12 @@ def noEdges():
 
     return s
 
+def inE(n1, n2):
+    for e in E[n1]:
+        if n2 == e[0]:
+            return e
+    return False
+
 # Reads the csv-file
 with open('reciepts.csv', 'rt') as f:
     reader = csv.reader(f)
@@ -351,21 +358,30 @@ with open('reciepts.csv', 'rt') as f:
 #print(noEdges())
 
 
+print('First print')
+#printPayees()
+print('')
+makeTransfers()
+print('')
 
-#print('First print')
-##printPayees()
-#print('')
-#makeTransfers()
-#print('')
+n = getV('Karoline')
+contractGraph(n)
+#initialize()
+#n = getV('Nina')
+#print()
+#print('Starting with', n)
+#contractGraph(n)
+#s = findCycle(n)
+#print(s)
 
-print(noEdges())
-for b in buyers:
-    if b in E.keys():
-        contractGraph(b)
-print(noEdges())
+##print(noEdges())
+#for b in buyers:
+#    if b in E.keys():
+#        contractGraph(b)
+##print(noEdges())
 
-#print('')
-#print('Second print')
-##printPayees()
-#print('')
-#makeTransfers()
+print('')
+print('Second print')
+#printPayees()
+print('')
+makeTransfers()
