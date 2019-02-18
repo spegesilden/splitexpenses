@@ -142,12 +142,13 @@ def initialize():
 def visit(v, start):
     v.visited = True
 
-    for e in E[v]:
-        e[0].parent.append(v)
-        if e[0].visited:
-            return e[0]
-        else:
-            visit(e[0], start)
+    if v in E.keys():
+        for e in E[v]:
+            e[0].parent.append(v)
+            if e[0].visited:
+                return e[0]
+            else:
+                visit(e[0], start)
 
 # Finds a cycle
 def findCycle(start):
@@ -164,7 +165,7 @@ def findCycle(start):
 
 # Will return a list containing the mid and the two branches.
 def getCycle(start, node):
-    C = [start]
+    C1 = [node]
     C2 = [node]
 
     # Function will return one branch
@@ -173,18 +174,21 @@ def getCycle(start, node):
             cycle.append(n)
             n = n.parent[0]
 
-    getC(node.parent[0], C)
+    getC(node.parent[0], C1)
     getC(node.parent[1], C2)
 
     # Reduces so there is no loose end.
     s = start
 
-    while C[-1] == C2[-1]:
-        s = C[-1]
-        C.remove(s)
+    while C1[-1] == C2[-1]:
+        s = C1[-1]
+        C1.remove(s)
         C2.remove(s)
 
-    return [s, C, C2]
+    C1.append(s)
+    C2.append(s)
+
+    return [C1, C2]
 
 # This is called if there is an odd number of edges.
 # It will change the cycle in order to get an even number of edges.
@@ -205,28 +209,31 @@ def changeCycle(start, end, change):
 
     return change
 
+# Function used in breakCycle().
+def update(C, change):
+    for i in range(len(C) - 1):
+        updateEdge(C[i + 1], C[i], change)
 
 # Removes or breaks a cycle
-def breakCycle(v, start, length):
-    edge = rmEdge(v, start)
+def breakCycle(C1, C2):
+    removedEdge = None
+    RC2 = C2[::-1]
+    wasC1 = False
 
-    child = v
-    p = v.parent
+    if len(C1) > 2:
+        wasC1 = True
+        removedEdge = rmEdge(C1[1], C1[0])
+    else:
+        removedEdge = rmEdge(C2[1], C2[0])
 
-    if length % 2 == 1:
-        edge = changeCycle(start, v, edge)
-        child = p
-        p = p.parent
+    change = removedEdge[1]
 
-    while not (p.parent is None):
-        updateEdge(p, p.parent, edge)
-        updateEdge(child, p, -edge)
-
-        p = p.parent
-        child = p
-        p = p.parent
-
-    updateEdge(child, p, -edge)
+    if wasC1:
+        update(C1[1::], change)
+        update(C2, -change)
+    else:
+        update(C1, -change)
+        update(C2[1::], change)
 
 # Find n to be the first in route which is not in E.
 def findNonEdge(route):
@@ -269,15 +276,15 @@ def findOther(nonEdge):
 # This function will contract the graph.
 # In other words it will given startNode and endNode romove excess edges
 # and hence there will be less transactions.
-def contractGraph(start, end, values, seen, route):
-    edges = findNonEdges()
+def contractGraph(start):
+    end = findCycle(start)
 
-    for e in edges:
-        e.append(findOther(e))
+    while end:
+        L = getCycle(start, end)
+        breakCycle(L[0], L[1])
 
-    for e in edges:
-        if not (e[2] is None):
-            updateEdge(e[0], e[1], e[2])
+        initialize()
+        end = findCycle(start)
 
 # Function to print the payees.
 def printPayees():
@@ -333,6 +340,11 @@ with open('reciepts.csv', 'rt') as f:
 
         extendEdges(node, float(row[1]), row[2::])
         #createPayeeEdges(row[2::])
+
+node = getV('Karoline')
+print(noEdges())
+contractGraph(node)
+print(noEdges())
 
 
 #print('First print')
