@@ -179,6 +179,9 @@ def getCycle(start, node):
 
     # Reduces so there is no loose end.
     s = start
+    print()
+    print(C1)
+    print(C2)
 
     while C1[-1] == C2[-1]:
         s = C1[-1]
@@ -341,10 +344,12 @@ with open('reciepts.csv', 'rt') as f:
         extendEdges(node, float(row[1]), row[2::])
         #createPayeeEdges(row[2::])
 
-node = getV('Karoline')
-print(noEdges())
-contractGraph(node)
-print(noEdges())
+#node = getV('Karoline')
+#print(node in E[node])
+#print(noEdges())
+#contractGraph(node)
+#print(noEdges())
+
 
 
 #print('First print')
@@ -352,17 +357,13 @@ print(noEdges())
 #print('')
 #makeTransfers()
 #print('')
-#
-#n1 = Node('Karoline')
-#n2 = Node('Sisse')
-#contractGraph(n1, n2, [], [n1], [n1])
-#rmZeroEdges()
-#
-##for b1 in buyers:
-##    for b2 in buyers:
-##        if b1 != b2:
-##            contractGraph(b1, b2, [], [b1], [b1])
-#
+
+print(noEdges())
+for b in buyers:
+    if b in E.keys():
+        contractGraph(b)
+print(noEdges())
+
 #print('')
 #print('Second print')
 ##printPayees()
