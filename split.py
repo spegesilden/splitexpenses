@@ -192,47 +192,72 @@ def getCycle(start, node):
 # This is called if there is an odd number of edges.
 # It will change the cycle in order to get an even number of edges.
 # Returns the new change.
-def changeCycle(start, mid, end, change):
-    e = rmEdge(mid, start)
-    isEdge = inE(end, start)
+def changeCycle(C):
+    # Nodes
+    end = C[-1][0]
+    mid = C[-2][0]
+    parent = C[-3][0]
 
-    # Removes one more edge
-    if mid.parent == [end]:
-        updateEdge(end, mid, -e[1])
+    # Multipliers
+    m = C[-2][1]
+    p = C[-3][1]
+
+    change = inE(mid, end)[1]
+    isEdge = inE(parent, end)
+
+    # Removes the last edge and updates the second last one.
+    e = rmEdge(mid, end)
+    if mid.parent == [parent]:
+        updateEdge(parent, mid, -(m*e[1]))
     else:
-        updateEdge(end, mid, e[1])
+        updateEdge(parent, mid, m*e[1])
 
-    # Adds or updates edge
+    # Adds or updates last edge.
     if isEdge:
-        isEdge[1] += -change
-        change = isEdge[1]
+        isEdge[1] -= m*change
     else:
-        end.addEdge(start, change)
-
-    return change
+        parent.addEdge(end, change)
 
 # Function used in breakCycle().
 def update(C, change):
     for i in range(0, len(C) - 1, 2):
-        updateEdge(C[i], C[i - 1], change)
-        updateEdge(C[i + 1], C[i], change)
+        updateEdge(C[i][0], C[i - 1][0], C[i - 1][1]*change)
+        updateEdge(C[i + 1], C[i], *change)
+
+# Function jused in breakCycles().
+def appendCycles(C1, C2):
+    C = [[n, 1] for n in C1[1::]]
+
+    for n in C2[:-1:]:
+        C.append([n, -1])
+
+    return C
 
 # Removes or breaks a cycle
 def breakCycle(C1, C2):
+    l1 = len(C1)
+    l2 = len(C2)
+    l = l1 + l2 - 2
     removedEdge = None
-    RC2 = C2[::-1]
     wasC1 = False
+    C = []
 
-    if len(C1) > 2:
+    # Removes one edge.
+    if l1 > 2:
         wasC1 = True
         removedEdge = rmEdge(C1[1], C1[0])
+        C = appendCycles(C1, C2)
     else:
         removedEdge = rmEdge(C2[1], C2[0])
+        C = appendCycles(C2, C1)
 
+    print(C1)
+    print(C2)
+    print(C)
     change = removedEdge[1]
 
-    if wasC1:
-        update(C1[1::], change)
+    if l % 2 == 0:
+        changeCycle(C)
         update(C2, -change)
     else:
         update(C1, -change)
