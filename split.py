@@ -243,10 +243,14 @@ def changeCycle(C):
         updateEdge(parent, mid, m*e[1])
 
     # Adds or updates edge between parent and end.
+    #print('Updating')
+    #print(parent, e1)
+    #print(
     if e1:
         e1[1] += p*change
     elif e2:
         e2[1] -= p*change
+        C[2][1] = -1
     else:
         parent.addEdge(end, change)
 
@@ -269,10 +273,8 @@ def appendCycles(C1, C2):
 # Removes or breaks a cycle
 def breakCycle(C1, C2):
     l1 = len(C1)
-    l2 = len(C2)
-    l = l1 + l2 - 2
+    l = l1 + len(C2) - 2
     change = None
-    wasC1 = False
     C = []
 
     # Removes one edge.
@@ -287,10 +289,10 @@ def breakCycle(C1, C2):
     if l % 2 == 0:
         changeCycle(C)
 
-    print(C)
-    print(C[1][0], C[0][0])
-    print(inE(C[1][0], C[0][0]))
-    change = rmEdge(C[1][0], C[0][0])[1]
+    if C[1][1] == -1:
+        change = -rmEdge(C[0][0], C[1][0])[1]
+    else:
+        change = rmEdge(C[1][0], C[0][0])[1]
 
     for i in range(0, len(C) - 1, 2):
         c1 = float(C[i - 1][1])*change 
