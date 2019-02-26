@@ -204,6 +204,8 @@ def getCycle(mid, node):
     # Reduces so there is no loose end.
     s = mid
 
+    print(C1)
+    print(C2)
     while C1[-1] == C2[-1]:
         s = C1[-1]
         C1.remove(s)
@@ -273,7 +275,7 @@ def appendCycles(C1, C2):
 # Removes or breaks a cycle
 def breakCycle(C1, C2):
     l1 = len(C1)
-    l = l1 + len(C2) - 2
+    n = l1 + len(C2)
     change = None
     C = []
 
@@ -281,12 +283,10 @@ def breakCycle(C1, C2):
     if l1 > 2:
         wasC1 = True
         C = appendCycles(C1, C2)
-        #change = inE(C1[1], C1[0])[1]
     else:
         C = appendCycles(C2, C1)
-        #change = inE(C2[1], C2[0])[1]
 
-    if l % 2 == 0:
+    if n % 2 == 1:
         changeCycle(C)
 
     if C[1][1] == -1:
@@ -294,11 +294,15 @@ def breakCycle(C1, C2):
     else:
         change = rmEdge(C[1][0], C[0][0])[1]
 
-    for i in range(0, len(C) - 1, 2):
-        c1 = float(C[i - 1][1])*change 
-        c2 = -float(C[i][1])*change
-        updateEdge(C[i][0], C[i - 1][0], c1, C[i][1])
-        updateEdge(C[i + 1][0], C[i][0], c2, C[i + 1][1])
+    for i in range(0, len(C) - 1):
+        a = C[i][1]
+        c = float(a)*change
+        updateEdge(C[i + 1][0], C[i][0], c, a)
+    #for i in range(0, len(C) - 1, 2):
+    #    c1 = float(C[i - 1][1])*change 
+    #    c2 = -float(C[i][1])*change
+    #    updateEdge(C[i][0], C[i - 1][0], c1, C[i][1])
+    #    updateEdge(C[i + 1][0], C[i][0], c2, C[i + 1][1])
 
 # This will update an edge if it exists.
 def updateEdge(start, end, change, orientation = 1):
@@ -308,7 +312,7 @@ def updateEdge(start, end, change, orientation = 1):
         e = inE(end, start)
 
     if e:
-        e[1] += float(change)
+        e[1] += orientation * change
 
 # Find n to be the first in route which is not in E.
 def findNonEdge(route):
@@ -351,8 +355,6 @@ def contractGraph(start):
 
     while end:
         C = getCycle(start, end)
-        #print(C[0])
-        #print(C[1])
         breakCycle(C[0], C[1])
 
         initialize()
