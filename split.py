@@ -11,6 +11,7 @@ U = dict([])
 # The list of all buyes
 buyers = []
 
+### Might be unneecessary
 def addToU(start, end, direction):
     if start in U.keys():
         wasInU = False
@@ -101,6 +102,7 @@ def extendEdges(start, value, names):
             v = getV(n)
             start.addEdge(v, p)
 
+### Might be unneecessary
 # Removes zero-edges
 def rmZeroEdges():
     toRemove = []
@@ -113,6 +115,7 @@ def rmZeroEdges():
     for r in toRemove:
         rmEdge(r[0], r[1])
 
+### Might be unneecessary
 # Do I need this?
 # Function to add a payee as a Node in V.
 def createPayeeEdges(payees):
@@ -142,6 +145,7 @@ def rmEdge(start, end):
 
     return edge
 
+### Might be unneecessary
 def markEdge(start, end):
     for e in E[start]:
         if e[0] == end:
@@ -206,6 +210,8 @@ def getCycle(mid, node):
 
     print(C1)
     print(C2)
+    print(C1[0].parent)
+    print(node, node.parent)
     while C1[-1] == C2[-1]:
         s = C1[-1]
         C1.remove(s)
@@ -314,6 +320,7 @@ def updateEdge(start, end, change, orientation = 1):
     if e:
         e[1] += orientation * change
 
+### Might be unneecessary
 # Find n to be the first in route which is not in E.
 def findNonEdge(route):
     n = 1
@@ -324,11 +331,13 @@ def findNonEdge(route):
         return n - 1
     return False
 
+### Might be unneecessary
 def updateEdges(v, change):
     p = v.parent
     if p.parent is None:
         updateEdge(v, p, change)
 
+### Might be unneecessary
 # Find all edges in U which are not in E.
 def findNonEdges():
     edges = []
@@ -340,6 +349,7 @@ def findNonEdges():
 
     return edges
 
+### Might be unneecessary
 # Finds an edge in U which is in E.
 def findOther(nonEdge):
     for e in U[nonEdge[0]]:
