@@ -164,7 +164,7 @@ def visit(v, start):
 
     if v in E.keys():
         for e in E[v]:
-            #print(start, v, e)
+            #print(e[0], e[0].visited)
             if e[0].visited:
                 e[0].parent.append(v)
                 return e[0]
@@ -172,15 +172,22 @@ def visit(v, start):
                 e[0].parent = [v]
                 C = C or visit(e[0], start)
 
+            if C:
+                #print(C)
+                break
+
     return C
 
 # Finds a cycle
 def findCycle(start):
     start.visited = True
     C = False
+    print('')
+    print('Finding cycle')
+    print(start, E[start])
 
     for e in E[start]:
-        #print('Start', start, e)
+        #print(e[0], e[0].visited)
         if e[0].visited:
             e[0].parent.append(start)
             return e[0]
@@ -188,18 +195,25 @@ def findCycle(start):
             e[0].parent = [start]
             C = C or visit(e[0], start)
 
+        if C:
+            break
+
     return C
 
 # Will return a list containing the mid and the two branches.
 def getCycle(mid, node):
     C1 = [node]
     C2 = [node]
+    #print('')
+    #print('Getting cycle')
 
     # Function will return one branch
     def getC(n, cycle):
         cycle.append(n)
         while n != mid:
             n = n.parent[0]
+            #if len(n.parent) > 1:
+            #    print(n, n.parent)
             cycle.append(n)
 
     getC(node.parent[0], C1)
@@ -208,24 +222,73 @@ def getCycle(mid, node):
     # Reduces so there is no loose end.
     s = mid
 
-    print(C1)
-    print(C2)
-    print(C1[0].parent)
-    print(node, node.parent)
-    while C1[-1] == C2[-1]:
+    #print(C1)
+    #print(C2)
+    #print(C1[0].parent)
+    #print(node, node.parent)
+    while C1[-1] == C2[-1] and len(C1) > 1 and len(C2) > 1:
         s = C1[-1]
+        s.parent = []
         C1.remove(s)
         C2.remove(s)
 
+    C1[-1].parent = [s]
+    C2[-1].parent = [s]
+    #if len(C1) == 1
     C1.append(s)
     C2.append(s)
 
     return [C1, C2]
 
+# Checks if a cycle is extendable. Returns the nodes which should be manipulated.
+def findExtendingNodes(C):
+    for i in range(1, 4):
+        start = C[i][0]
+        end = C[i - 1][0]
+        if C[i][1] == -1:
+            start = C[i - 1][0]
+            end = C[i][0]
+
+        if len(E[start]) > 1:
+            for e in E[start]:
+                if e[0] not in [c[0] for c in C]:
+                    return [start, end, e[0], i]
+    return False
+
+# Extends a cycle if it is too small.
+def extendCycle(C):
+    Nodes = findExtendingNodes(C)
+
+    def fixParent(node, parent):
+        if len(node.parent) > 1:
+            node.parent.remove(C[1][0])
+            node.parent.append(parent)
+        else:
+            node.parent = [parent]
+
+    if Nodes:
+        #print(Nodes)
+        fixParent(Nodes[2], Nodes[0])
+        fixParent(Nodes[1], Nodes[2])
+
+        e = rmEdge(Nodes[0], Nodes[1])
+        Nodes[2].addEdge(Nodes[1], e[1])
+
+        i = Nodes[3]
+        if C[i][1] == -1:
+            C.insert(i - 1, [Nodes[2], -1])
+        else:
+            C.insert(i, [Nodes[2], 1])
+
+    return Nodes
+
 # This is called if there is an odd number of edges.
 # It will change the cycle in order to get an even number of edges.
 # Returns the new change.
 def changeCycle(C):
+    if len(C) == 4:
+        extendCycle(C)
+
     # Nodes
     end = C[0][0]
     mid = C[1][0]
@@ -273,10 +336,31 @@ def changeCycle(C):
 def appendCycles(C1, C2):
     C = [[n, 1] for n in C1]
 
-    for n in C2[:-1:][::-1]:
-        C.append([n, -1])
+    if len(C2) > 1:
+        for n in C2[:-1:][::-1]:
+            C.append([n, -1])
+    else:
+        C.append([C2[0], 1])
 
     return C
+
+def cycleValue(C, start):
+    #print('Printing vlaue')
+    s = 0
+
+    for i in range(start, len(C) - 1):
+        c1 = C[i][0]
+        c2 = C[i + 1][0]
+        #print(i)
+        #print(c1, c2, C[i + 1][1])
+        #print(c1, inE(c1, c2))
+        #print(c2, inE(c2, c1))
+        if C[i + 1][1] == -1:
+            s += inE(c1, c2)[1]
+        else:
+            s += inE(c2, c1)[1]
+
+    return s
 
 # Removes or breaks a cycle
 def breakCycle(C1, C2):
@@ -285,21 +369,40 @@ def breakCycle(C1, C2):
     change = None
     C = []
 
-    # Removes one edge.
+    # Appends the cycles
     if l1 > 2:
-        wasC1 = True
         C = appendCycles(C1, C2)
     else:
         C = appendCycles(C2, C1)
 
+    print('')
+    #print('Cycles 1 and 2')
+    print(C1)
+    for c in C1:
+        print(c.parent)
+    print(C2)
+    for c in C2:
+        print(c.parent)
+    print(C)
+    #print('First', cycleValue(C, 0))
+    # Ensures that there are an even number of edges
     if n % 2 == 1:
         changeCycle(C)
 
+    #print(C)
+    #node = getV('Luis')
+    #print(node.parent)
+    print('Second', cycleValue(C, 0))
+    # Removes one edge.
     if C[1][1] == -1:
         change = -rmEdge(C[0][0], C[1][0])[1]
     else:
         change = rmEdge(C[1][0], C[0][0])[1]
 
+    print(change)
+    print('Third', cycleValue(C, 1))
+    #print(C)
+    #printCycle(C)
     for i in range(0, len(C) - 1):
         a = C[i][1]
         c = float(a)*change
@@ -310,6 +413,10 @@ def breakCycle(C1, C2):
     #    updateEdge(C[i][0], C[i - 1][0], c1, C[i][1])
     #    updateEdge(C[i + 1][0], C[i][0], c2, C[i + 1][1])
 
+    print('')
+    print('Fourth', cycleValue(C, 1))
+    #printCycle(C)
+
 # This will update an edge if it exists.
 def updateEdge(start, end, change, orientation = 1):
     e = inE(start, end)
@@ -318,7 +425,7 @@ def updateEdge(start, end, change, orientation = 1):
         e = inE(end, start)
 
     if e:
-        e[1] += orientation * change
+        e[1] -= orientation * change
 
 ### Might be unneecessary
 # Find n to be the first in route which is not in E.
@@ -402,6 +509,13 @@ def printEdges():
         print(str(k) + " points at:")
         for e in E[k]:
             print(e[0])
+
+def printCycle(C):
+    for i in range(0, len(C) - 1):
+        if C[i+1][1] == -1:
+            print(C[i][0], C[i+1], inE(C[i][0], C[i+1][0]))
+        else:
+            print(C[i+1], C[i][0], inE(C[i+1][0], C[i][0]))
 
 # Function to print number of edges.
 def noEdges():
