@@ -182,9 +182,9 @@ def visit(v, start):
 def findCycle(start):
     start.visited = True
     C = False
-    print('')
-    print('Finding cycle')
-    print(start, E[start])
+    #print('')
+    #print('Finding cycle')
+    #print(start, E[start])
 
     for e in E[start]:
         #print(e[0], e[0].visited)
@@ -228,12 +228,14 @@ def getCycle(mid, node):
     #print(node, node.parent)
     while C1[-1] == C2[-1] and len(C1) > 1 and len(C2) > 1:
         s = C1[-1]
-        s.parent = []
+        if len(s.parent) == 1:
+            s.parent = []
         C1.remove(s)
         C2.remove(s)
 
-    C1[-1].parent = [s]
-    C2[-1].parent = [s]
+    if len(C1[-1].parent) == 1:
+        C1[-1].parent = [s]
+        C2[-1].parent = [s]
     #if len(C1) == 1
     C1.append(s)
     C2.append(s)
@@ -377,13 +379,9 @@ def breakCycle(C1, C2):
 
     print('')
     #print('Cycles 1 and 2')
-    print(C1)
-    for c in C1:
-        print(c.parent)
-    print(C2)
-    for c in C2:
-        print(c.parent)
-    print(C)
+    #print(C1)
+    #print(C2)
+    #print(C)
     #print('First', cycleValue(C, 0))
     # Ensures that there are an even number of edges
     if n % 2 == 1:
