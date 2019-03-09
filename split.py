@@ -90,8 +90,8 @@ class Node:
             E.setdefault(self, [[node, value]]).append([node, value])
 
         # Adds the undirected edge
-        addToU(self, node, True)
-        addToU(node, self, False)
+        #addToU(self, node, True)
+        #addToU(node, self, False)
 
 # Function for Adding multiple edges between multiple nodes.
 def extendEdges(start, value, names):
@@ -204,8 +204,6 @@ def findCycle(start):
 def getCycle(mid, node):
     C1 = [node]
     C2 = [node]
-    #print('')
-    #print('Getting cycle')
 
     # Function will return one branch
     def getC(n, cycle):
@@ -228,13 +226,14 @@ def getCycle(mid, node):
     #print(node, node.parent)
     while C1[-1] == C2[-1] and len(C1) > 1 and len(C2) > 1:
         s = C1[-1]
-        if len(s.parent) == 1:
+        if len(s.parent) <= 1:
             s.parent = []
         C1.remove(s)
         C2.remove(s)
 
-    if len(C1[-1].parent) == 1:
+    if len(C1[-1].parent) <= 1:
         C1[-1].parent = [s]
+    if len(C2[-1].parent) <= 1:
         C2[-1].parent = [s]
     #if len(C1) == 1
     C1.append(s)
@@ -243,25 +242,24 @@ def getCycle(mid, node):
     return [C1, C2]
 
 # Checks if a cycle is extendable. Returns the nodes which should be manipulated.
-def findExtendingNodes(C):
-    for i in range(1, 4):
+def findExtendingNode(C):
+    for i in range(1, len(C)):
         start = C[i][0]
         end = C[i - 1][0]
         if C[i][1] == -1:
             start = C[i - 1][0]
             end = C[i][0]
 
-        if len(E[start]) > 1:
-            for e in E[start]:
-                if e[0] not in [c[0] for c in C]:
-                    return [start, end, e[0], i]
+        for e in E[start]:
+            if e[0] not in [c[0] for c in C]:
+                return [start, end, e[0], i]
     return False
 
 # Extends a cycle if it is too small.
 def extendCycle(C):
-    Nodes = findExtendingNodes(C)
+    Nodes = findExtendingNode(C)
 
-    def fixParent(node, parent):
+    def updateParent(node, parent):
         if len(node.parent) > 1:
             node.parent.remove(C[1][0])
             node.parent.append(parent)
@@ -270,17 +268,26 @@ def extendCycle(C):
 
     if Nodes:
         #print(Nodes)
-        fixParent(Nodes[2], Nodes[0])
-        fixParent(Nodes[1], Nodes[2])
+        updateParent(Nodes[2], Nodes[0])
+        updateParent(Nodes[1], Nodes[2])
 
         e = rmEdge(Nodes[0], Nodes[1])
-        Nodes[2].addEdge(Nodes[1], e[1])
+
+        Nodes[2].addEdge(Nodes[1], 0)
 
         i = Nodes[3]
         if C[i][1] == -1:
-            C.insert(i - 1, [Nodes[2], -1])
+            if inE(Nodes[1], Nodes[2]):
+                C.insert(i - 1, [Nodes[2], -1])
+            else:
+                C.insert(i - 1, [Nodes[2], 1])
         else:
-            C.insert(i, [Nodes[2], 1])
+            if inE(Nodes[1], Nodes[2]):
+                C.insert(i, [Nodes[2], -1])
+            else:
+                C.insert(i, [Nodes[2], 1])
+
+        #e1 = inE(Nodes[1], Nodes[2])
 
     return Nodes
 
@@ -288,51 +295,42 @@ def extendCycle(C):
 # It will change the cycle in order to get an even number of edges.
 # Returns the new change.
 def changeCycle(C):
-    if len(C) == 4:
-        extendCycle(C)
-
     # Nodes
     end = C[0][0]
     mid = C[1][0]
     parent = C[2][0]
+    #print('Changing')
+    #print(C)
+    #print(printCycle(C))
 
     # Multipliers
     m = C[1][1]
     p = C[2][1]
 
-    #print(end, mid, parent)
-    #print(end.parent, mid.parent, parent.parent)
-    #print(C)
-    #print(inE(mid, end), inE(end, mid))
     e = rmEdge(mid, end)
     change = e[1]
     e1 = inE(parent, end)
-    e2 = inE(end, parent)
+    #e2 = inE(end, parent)
 
-    # Removes the last edge and updates the second last one.
-    if mid.parent == [parent]:
-        updateEdge(parent, mid, -(m*e[1]))
-    else:
-        updateEdge(parent, mid, m*e[1])
+    # Removes the edge which is not in the cycle.
+    updateEdge(parent, mid, change, p)
 
     # Adds or updates edge between parent and end.
-    #print('Updating')
-    #print(parent, e1)
-    #print(
+    parent.addEdge(end, change)
     if e1:
-        e1[1] += p*change
-    elif e2:
-        e2[1] -= p*change
-        C[2][1] = -1
+        C[2][1] = 1
     else:
-        parent.addEdge(end, change)
+        C[2][1] = -1
 
     end.parent.remove(mid)
     end.parent.append(parent)
 
     # Remove the second last element from the cycle.
-    #C.remove(C[-2])
     C.remove(C[1])
+
+    #print('')
+    #print(C)
+    #print(printCycle(C))
 
 # Function jused in breakCycles().
 def appendCycles(C1, C2):
@@ -377,53 +375,82 @@ def breakCycle(C1, C2):
     else:
         C = appendCycles(C2, C1)
 
+    end = C[0][0]
+    mid = C[1][0]
+    parent = C[2][0]
+
     print('')
-    #print('Cycles 1 and 2')
-    #print(C1)
-    #print(C2)
-    #print(C)
-    #print('First', cycleValue(C, 0))
+    print('First')
+    #makeTransfers()
+    t1 = makeTransfers()
+    printCycle(C)
+
+    if len(C) == 4:
+        extendCycle(C)
+        print('')
+        print('Exdended')
+        printCycle(C)
+
+
     # Ensures that there are an even number of edges
-    if n % 2 == 1:
+    if len(C) % 2 == 0:
+        #print('')
+        #print('Changing')
         changeCycle(C)
 
-    #print(C)
-    #node = getV('Luis')
-    #print(node.parent)
-    print('Second', cycleValue(C, 0))
+    #print('')
+    #print('Second')
+    #print(makeTransfers())
+    #printCycle(C)
+    #t2 = makeTransfers()
+
     # Removes one edge.
-    if C[1][1] == -1:
-        change = -rmEdge(C[0][0], C[1][0])[1]
+    #if C[1][1] == -1:
+    if inE(C[0][0], C[1][0]):
+        change = rmEdge(C[0][0], C[1][0])[1]
     else:
         change = rmEdge(C[1][0], C[0][0])[1]
 
+    print('')
     print(change)
-    print('Third', cycleValue(C, 1))
-    #print(C)
+    #print('Third')
     #printCycle(C)
-    for i in range(0, len(C) - 1):
+    #print('Updating')
+    #print('')
+
+    for i in range(2, len(C)):
         a = C[i][1]
-        c = float(a)*change
-        updateEdge(C[i + 1][0], C[i][0], c, a)
-    #for i in range(0, len(C) - 1, 2):
-    #    c1 = float(C[i - 1][1])*change 
-    #    c2 = -float(C[i][1])*change
-    #    updateEdge(C[i][0], C[i - 1][0], c1, C[i][1])
-    #    updateEdge(C[i + 1][0], C[i][0], c2, C[i + 1][1])
+        updateEdge(C[i][0], C[i - 1][0], change, a)
 
     print('')
-    print('Fourth', cycleValue(C, 1))
-    #printCycle(C)
+    print('Fourth')
+    #print(C)
+    t3 = makeTransfers()
+    if t1 - t3 <= 1 and t3 - t1 <= 1:
+        print('The same!', len(C))
+        print(C)
+    else:
+        print(len(C))
+        print(C)
+        print(t1)
+        print(t3)
+        printCycle(C)
+    #print(makeTransfers())
 
 # This will update an edge if it exists.
 def updateEdge(start, end, change, orientation = 1):
     e = inE(start, end)
 
-    if orientation != 1:
+    if orientation == -1:
         e = inE(end, start)
 
     if e:
+        #print(start, end, orientation)
+        #print(e)
         e[1] -= orientation * change
+        #print(e)
+        #return True
+    #return False
 
 ### Might be unneecessary
 # Find n to be the first in route which is not in E.
@@ -470,6 +497,11 @@ def contractGraph(start):
 
     while end:
         C = getCycle(start, end)
+        #if len(end.parent) == 1:
+        #    print('')
+        #    print('Loop')
+        #    print(end, end.parent)
+        #    print(C)
         breakCycle(C[0], C[1])
 
         initialize()
@@ -494,12 +526,13 @@ def makeTransfers():
         for e in edges:
             s += e[1]
 
-        print(v, s)
+        #print(v, s)
         if s < 0:
             total -= s
         else:
             total += s
-    print(total)
+    #print(total)
+    return(total)
 
 # Function to print the edges.
 def printEdges():
@@ -554,7 +587,7 @@ with open('reciepts.csv', 'rt') as f:
 print('First print')
 print(noEdges())
 #printPayees()
-makeTransfers()
+print(makeTransfers())
 print('')
 
 n = getV('Karoline')
@@ -578,4 +611,4 @@ print('')
 print('Second print')
 print(noEdges())
 #printPayees()
-makeTransfers()
+print(makeTransfers())
