@@ -6,25 +6,8 @@ import csv
 V = set([])
 # The set of all edges. Note that a node N1 points at N2 with the weight w by E[N1] = [N2, w]
 E = dict([])
-# The set of all edges. Note that it is not directed
-U = dict([])
 # The list of all buyes
 buyers = []
-
-### Might be unneecessary
-def addToU(start, end, direction):
-    if start in U.keys():
-        wasInU = False
-
-        for i, e in enumerate(U[start]):
-            if e[0] == end:
-                wasInU = True
-                U[start][i][1] = U[start][i][1] or direction
-
-        if not wasInU:
-            U[start].append([end, direction])
-    else:
-        U[start] = [[end, direction]]
 
 def addToV(s):
     isVertex = False
@@ -89,10 +72,6 @@ class Node:
         else:
             E.setdefault(self, [[node, value]]).append([node, value])
 
-        # Adds the undirected edge
-        #addToU(self, node, True)
-        #addToU(node, self, False)
-
 # Function for Adding multiple edges between multiple nodes.
 def extendEdges(start, value, names):
     p = value/float(len(names))
@@ -101,26 +80,6 @@ def extendEdges(start, value, names):
             addToV(n)
             v = getV(n)
             start.addEdge(v, p)
-
-### Might be unneecessary
-# Removes zero-edges
-def rmZeroEdges():
-    toRemove = []
-
-    for v, edges in E.items():
-        for i, e in enumerate(edges):
-            if e[1] == 0:
-                toRemove.append([v, e[0]])
-
-    for r in toRemove:
-        rmEdge(r[0], r[1])
-
-### Might be unneecessary
-# Do I need this?
-# Function to add a payee as a Node in V.
-def createPayeeEdges(payees):
-    for p in payees:
-        E.setdefault(Node(p), [])
 
 # Deletes the edge from start to end.
 # Returns False is there is no edge.
@@ -134,12 +93,6 @@ def rmEdge(start, end):
         del E[start]
 
     return edge
-
-### Might be unneecessary
-def markEdge(start, end):
-    for e in E[start]:
-        if e[0] == end:
-            e[1] = 0
 
 # Initializes the graph once again.
 def initialize():
@@ -219,89 +172,6 @@ def getCycle(mid, node):
 
     return [C1, C2]
 
-# Checks if a cycle is extendable. Returns the nodes which should be manipulated.
-def findExtendingNode(C):
-    for i in range(1, len(C)):
-        start = C[i][0]
-        end = C[i - 1][0]
-        if C[i][1] == -1:
-            start = C[i - 1][0]
-            end = C[i][0]
-
-        for e in E[start]:
-            if e[0] not in [c[0] for c in C]:
-                return [start, end, e[0], i]
-    return False
-
-# Extends a cycle if it is too small.
-def extendCycle(C):
-    Nodes = findExtendingNode(C)
-
-    def updateParent(node, parent):
-        if len(node.parent) > 1:
-            node.parent.remove(C[1][0])
-            node.parent.append(parent)
-        else:
-            node.parent = [parent]
-
-    if Nodes:
-        #print(Nodes)
-        updateParent(Nodes[2], Nodes[0])
-        updateParent(Nodes[1], Nodes[2])
-
-        e = rmEdge(Nodes[0], Nodes[1])
-
-        Nodes[2].addEdge(Nodes[1], 0)
-
-        i = Nodes[3]
-        if C[i][1] == -1:
-            if inE(Nodes[1], Nodes[2]):
-                C.insert(i - 1, [Nodes[2], -1])
-            else:
-                C.insert(i - 1, [Nodes[2], 1])
-        else:
-            if inE(Nodes[1], Nodes[2]):
-                C.insert(i, [Nodes[2], -1])
-            else:
-                C.insert(i, [Nodes[2], 1])
-
-        #e1 = inE(Nodes[1], Nodes[2])
-
-    return Nodes
-
-# This is called if there is an odd number of edges.
-# It will change the cycle in order to get an even number of edges.
-# Returns the new change.
-def changeCycle(C):
-    # Nodes
-    end = C[0][0]
-    mid = C[1][0]
-    parent = C[2][0]
-
-    # Multipliers
-    m = C[1][1]
-    p = C[2][1]
-
-    e = rmEdge(mid, end)
-    change = e[1]
-    e1 = inE(parent, end)
-
-    # Removes the edge which is not in the cycle.
-    updateEdge(parent, mid, change, p)
-
-    # Adds or updates edge between parent and end.
-    parent.addEdge(end, change)
-    if e1:
-        C[2][1] = 1
-    else:
-        C[2][1] = -1
-
-    end.parent.remove(mid)
-    end.parent.append(parent)
-
-    # Remove the second last element from the cycle.
-    C.remove(C[1])
-
 # Function jused in breakCycles().
 def appendCycles(C1, C2):
     C = [[n, 1] for n in C1]
@@ -369,42 +239,6 @@ def updateEdge(start, end, change, orientation = 1):
     if e:
         e[1] -= orientation * change
 
-### Might be unneecessary
-# Find n to be the first in route which is not in E.
-def findNonEdge(route):
-    n = 1
-    while route[n][1] and n < len(route) - 1:
-        n += 1
-
-    if not route[n][1]:
-        return n - 1
-    return False
-
-### Might be unneecessary
-def updateEdges(v, change):
-    p = v.parent
-    if p.parent is None:
-        updateEdge(v, p, change)
-
-### Might be unneecessary
-# Find all edges in U which are not in E.
-def findNonEdges():
-    edges = []
-
-    for v in U.keys():
-        for e in U[v]:
-            if not e[1] and len(U[v]) > 1:
-                edges.append([v, e[0]])
-
-    return edges
-
-### Might be unneecessary
-# Finds an edge in U which is in E.
-def findOther(nonEdge):
-    for e in U[nonEdge[0]]:
-        if e[1]:
-            return e[0]
-
 # This function will contract the graph.
 # In other words it will given startNode and endNode romove excess edges
 # and hence there will be less transactions.
@@ -461,13 +295,6 @@ def printEdges():
         for e in E[k]:
             print(e[0])
 
-def printCycle(C):
-    for i in range(0, len(C) - 1):
-        if C[i+1][1] == -1:
-            print(C[i][0], C[i+1], inE(C[i][0], C[i+1][0]))
-        else:
-            print(C[i+1], C[i][0], inE(C[i+1][0], C[i][0]))
-
 # Function to print number of edges.
 def noEdges():
     s = 0
@@ -506,12 +333,11 @@ with open('reciepts.csv', 'rt') as f:
 
 print('First print')
 print(noEdges())
-#printPayees()
+printPayees()
 #print(makeTransfers(True))
 print('')
 
 n = getV('Karoline')
-print(findCycle(n))
 contractGraph(n)
 #initialize()
 #n = getV('Nina')
@@ -530,5 +356,5 @@ contractGraph(n)
 print('')
 print('Second print')
 print(noEdges())
-#printPayees()
+printPayees()
 #print(makeTransfers(True))
