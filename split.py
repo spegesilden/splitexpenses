@@ -243,6 +243,9 @@ def updateEdge(start, end, change, orientation = 1):
 # In other words it will given startNode and endNode romove excess edges
 # and hence there will be less transactions.
 def contractGraph(start):
+    if start not in E.keys():
+        return None
+
     initialize()
     end = findCycle(start)
 
@@ -258,9 +261,13 @@ def printPayees():
     total = 0
     for v in E.keys():
         for p in E[v]:
-            print(v.name, p[0].name, p[1])
+            if p[1] > 0:
+                print(p[0].name, 'transfers to', v.name, p[1])
+            else:
+                print(v.name, 'transfers to', p[0].name, -p[1])
             total += 1
-    print(total)
+    print('')
+    print('Total number of transactions is', total)
 
 # This will count how much the persons who should have money will get
 # and print the total value.
@@ -322,36 +329,16 @@ with open('reciepts.csv', 'rt') as f:
             buyers.append(node)
 
         extendEdges(node, float(row[1]), row[2::])
-        #createPayeeEdges(row[2::])
-
-#node = getV('Karoline')
-#print(node in E[node])
-#print(noEdges())
-#contractGraph(node)
-#print(noEdges())
-
 
 print('First print')
 print(noEdges())
 printPayees()
 #print(makeTransfers(True))
+
 print('')
-
-n = getV('Karoline')
-contractGraph(n)
-#initialize()
-#n = getV('Nina')
-#print()
-#print('Starting with', n)
-#contractGraph(n)
-#s = findCycle(n)
-#print(s)
-
-##print(noEdges())
-#for b in buyers:
-#    if b in E.keys():
-#        contractGraph(b)
-##print(noEdges())
+print('Minimizing number of transactions')
+for b in buyers:
+    contractGraph(b)
 
 print('')
 print('Second print')
