@@ -125,12 +125,6 @@ def createPayeeEdges(payees):
 # Deletes the edge from start to end.
 # Returns False is there is no edge.
 def rmEdge(start, end):
-    #edge = False
-
-    #for i, e in enumerate(E[start]):
-    #    if e[0] == end:
-    #        edge = e
-
     edge = inE(start, end)
 
     if len(E[start]) > 1:
@@ -138,10 +132,6 @@ def rmEdge(start, end):
         E[start].remove(edge)
     else:
         del E[start]
-
-    #print('Has removed', start, end, inE(start, end))
-    #if start in E.keys():
-    #    print(E[start])
 
     return edge
 
@@ -164,7 +154,6 @@ def visit(v, start):
 
     if v in E.keys():
         for e in E[v]:
-            #print(e[0], e[0].visited)
             if e[0].visited:
                 e[0].parent.append(v)
                 return e[0]
@@ -173,7 +162,6 @@ def visit(v, start):
                 C = C or visit(e[0], start)
 
             if C:
-                #print(C)
                 break
 
     return C
@@ -182,12 +170,8 @@ def visit(v, start):
 def findCycle(start):
     start.visited = True
     C = False
-    #print('')
-    #print('Finding cycle')
-    #print(start, E[start])
 
     for e in E[start]:
-        #print(e[0], e[0].visited)
         if e[0].visited:
             e[0].parent.append(start)
             return e[0]
@@ -210,8 +194,6 @@ def getCycle(mid, node):
         cycle.append(n)
         while n != mid:
             n = n.parent[0]
-            #if len(n.parent) > 1:
-            #    print(n, n.parent)
             cycle.append(n)
 
     getC(node.parent[0], C1)
@@ -220,10 +202,6 @@ def getCycle(mid, node):
     # Reduces so there is no loose end.
     s = mid
 
-    #print(C1)
-    #print(C2)
-    #print(C1[0].parent)
-    #print(node, node.parent)
     while C1[-1] == C2[-1] and len(C1) > 1 and len(C2) > 1:
         s = C1[-1]
         if len(s.parent) <= 1:
@@ -235,7 +213,7 @@ def getCycle(mid, node):
         C1[-1].parent = [s]
     if len(C2[-1].parent) <= 1:
         C2[-1].parent = [s]
-    #if len(C1) == 1
+
     C1.append(s)
     C2.append(s)
 
@@ -299,9 +277,6 @@ def changeCycle(C):
     end = C[0][0]
     mid = C[1][0]
     parent = C[2][0]
-    #print('Changing')
-    #print(C)
-    #print(printCycle(C))
 
     # Multipliers
     m = C[1][1]
@@ -310,7 +285,6 @@ def changeCycle(C):
     e = rmEdge(mid, end)
     change = e[1]
     e1 = inE(parent, end)
-    #e2 = inE(end, parent)
 
     # Removes the edge which is not in the cycle.
     updateEdge(parent, mid, change, p)
@@ -327,10 +301,6 @@ def changeCycle(C):
 
     # Remove the second last element from the cycle.
     C.remove(C[1])
-
-    #print('')
-    #print(C)
-    #print(printCycle(C))
 
 # Function jused in breakCycles().
 def appendCycles(C1, C2):
@@ -379,63 +349,15 @@ def breakCycle(C1, C2):
     mid = C[1][0]
     parent = C[2][0]
 
-    print('')
-    print('First')
-    #makeTransfers()
-    t1 = makeTransfers()
-    printCycle(C)
-
-    if len(C) == 4:
-        extendCycle(C)
-        print('')
-        print('Exdended')
-        printCycle(C)
-
-
-    # Ensures that there are an even number of edges
-    if len(C) % 2 == 0:
-        #print('')
-        #print('Changing')
-        changeCycle(C)
-
-    #print('')
-    #print('Second')
-    #print(makeTransfers())
-    #printCycle(C)
-    #t2 = makeTransfers()
-
     # Removes one edge.
-    #if C[1][1] == -1:
     if inE(C[0][0], C[1][0]):
         change = rmEdge(C[0][0], C[1][0])[1]
     else:
         change = rmEdge(C[1][0], C[0][0])[1]
 
-    print('')
-    print(change)
-    #print('Third')
-    #printCycle(C)
-    #print('Updating')
-    #print('')
-
     for i in range(2, len(C)):
         a = C[i][1]
         updateEdge(C[i][0], C[i - 1][0], change, a)
-
-    print('')
-    print('Fourth')
-    #print(C)
-    t3 = makeTransfers()
-    if t1 - t3 <= 1 and t3 - t1 <= 1:
-        print('The same!', len(C))
-        print(C)
-    else:
-        print(len(C))
-        print(C)
-        print(t1)
-        print(t3)
-        printCycle(C)
-    #print(makeTransfers())
 
 # This will update an edge if it exists.
 def updateEdge(start, end, change, orientation = 1):
@@ -445,12 +367,7 @@ def updateEdge(start, end, change, orientation = 1):
         e = inE(end, start)
 
     if e:
-        #print(start, end, orientation)
-        #print(e)
         e[1] -= orientation * change
-        #print(e)
-        #return True
-    #return False
 
 ### Might be unneecessary
 # Find n to be the first in route which is not in E.
@@ -497,11 +414,6 @@ def contractGraph(start):
 
     while end:
         C = getCycle(start, end)
-        #if len(end.parent) == 1:
-        #    print('')
-        #    print('Loop')
-        #    print(end, end.parent)
-        #    print(C)
         breakCycle(C[0], C[1])
 
         initialize()
@@ -519,20 +431,28 @@ def printPayees():
 # This will count how much the persons who should have money will get
 # and print the total value.
 # The function is only for validating if the program works
-def makeTransfers():
+def makeTransfers(a = False):
     total = 0
-    for v, edges in E.items():
-        s = 0
-        for e in edges:
-            s += e[1]
+    N = dict([])
 
-        #print(v, s)
-        if s < 0:
-            total -= s
-        else:
-            total += s
-    #print(total)
-    return(total)
+    for v, edges in E.items():
+        N.setdefault(v, [0, 0, 0])
+        for e in edges:
+            N.setdefault(e[0], [0, 0, 0])
+            if e[1] > 0:
+                N[v][0] += e[1]
+                N[e[0]][1] += e[1]
+            else:
+                N[v][1] -= e[1]
+                N[e[0]][0] -= e[1]
+
+    for v, s in N.items():
+        N[v][2] = N[v][0] - N[v][1]
+        if a:
+            print(v, N[v])
+        total += s[2] #- s[1]
+
+    return total
 
 # Function to print the edges.
 def printEdges():
@@ -587,7 +507,7 @@ with open('reciepts.csv', 'rt') as f:
 print('First print')
 print(noEdges())
 #printPayees()
-print(makeTransfers())
+#print(makeTransfers(True))
 print('')
 
 n = getV('Karoline')
@@ -611,4 +531,4 @@ print('')
 print('Second print')
 print(noEdges())
 #printPayees()
-print(makeTransfers())
+#print(makeTransfers(True))
