@@ -9,6 +9,7 @@ E = dict([])
 # The list of all buyes
 buyers = []
 
+# Adds a vertex to V, if it does not already exists
 def addToV(s):
     isVertex = False
 
@@ -19,6 +20,8 @@ def addToV(s):
     if not isVertex:
         V.add(Node(s))
 
+# Returns the node v which has the name s.
+# If not such v exists it returns False.
 def getV(s):
     for v in V:
         if v.name == s:
@@ -94,7 +97,7 @@ def rmEdge(start, end):
 
     return edge
 
-# Initializes the graph once again.
+# Initializes the graph.
 def initialize():
     for v in V:
         v.visited = False
@@ -119,7 +122,7 @@ def visit(v, start):
 
     return C
 
-# Finds a cycle
+# Finds a pseudo cycle.
 def findCycle(start):
     start.visited = True
     C = False
@@ -137,7 +140,7 @@ def findCycle(start):
 
     return C
 
-# Will return a list containing the mid and the two branches.
+# Returns a list containing the mid and the two branches.
 def getCycle(mid, node):
     C1 = [node]
     C2 = [node]
@@ -183,24 +186,6 @@ def appendCycles(C1, C2):
         C.append([C2[0], 1])
 
     return C
-
-def cycleValue(C, start):
-    #print('Printing vlaue')
-    s = 0
-
-    for i in range(start, len(C) - 1):
-        c1 = C[i][0]
-        c2 = C[i + 1][0]
-        #print(i)
-        #print(c1, c2, C[i + 1][1])
-        #print(c1, inE(c1, c2))
-        #print(c2, inE(c2, c1))
-        if C[i + 1][1] == -1:
-            s += inE(c1, c2)[1]
-        else:
-            s += inE(c2, c1)[1]
-
-    return s
 
 # Removes or breaks a cycle
 def breakCycle(C1, C2):
@@ -311,6 +296,8 @@ def noEdges():
 
     return s
 
+# Checks if an edge exists.
+# If the edge from n1 to n2 exists it is returned otherwise False.
 def inE(n1, n2):
     if n1 in E.keys():
         for e in E[n1]:
