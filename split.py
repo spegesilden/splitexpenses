@@ -1,3 +1,4 @@
+import sys
 import csv
 
 # This will be solved be considering the whole thing as a directed and weighted graph.
@@ -306,7 +307,7 @@ def inE(n1, n2):
     return False
 
 # Reads the csv-file
-with open('reciepts.csv', 'rt') as f:
+with open(sys.argv[1], 'rt') as f:
     reader = csv.reader(f)
     for row in reader:
         addToV(row[0])
