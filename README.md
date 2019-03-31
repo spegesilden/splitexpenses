@@ -8,3 +8,8 @@ The task is then to minimize the number of transactions so that everyone gets th
 The program takes a mandatory argument which is the path to the csv file containing the data. Every line should reflect that one person, say Bob, has covered, say $20, for several other persons, say Wanda and Eric. The line is comma separated and should start with who has covered for the expense, then the amount of money, followed all the people who have been covered for including the one who covered if that person did participate in the expense. So in our example, a correct entry would be:
 
 Bob,20,Wanda,Bob,Eric
+
+I have treated the problem as a graph problem, where the graph will be a weighted and directed graph. Furthermore, if a vertex A points at B with weight w, then B owes A w in cash. I think I just needed a convention, and this makes it easy to see how much A is owed by the others.
+To complete the task I consider pseudo-cycles, that is if we have two vertices with two paths from one to the other this is considered as a pseudo-cycle. The idea is to find every pseudo-cycles and break it in a cash flow preserving way.
+Having found a pseudo-cycle I simply remove one edge and update the weight of every other edge in the pseudo-cycle with respect to the removed weight. There are two scenarios, one that changes the sign and one which conserves it.
+All the vertices I need to consider are the ones who have been covering for others since they are the only ones who give rise to pseudo-cycles.
